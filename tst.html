@@ -15,25 +15,27 @@
             margin: 100px;
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/kineticjs/5.2.0/kinetic.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/kineticjs/5.2.0/kinetic.js"></script> -->
+    <script src="https://unpkg.com/konva@7.0.3/konva.min.js"></script>
+
     <script>
         var layer,
             colors;
         window.onload = function() {
-            var stage = new Kinetic.Stage({
+            var stage = new Konva.Stage({
                 container: "container",
                 width: 1078,
                 height: 800,
 
             });
-            layer = new Kinetic.Layer();
+            layer = new Konva.Layer();
             colors = ["red", "orange", "yellow", "green", "blue", "purple"];
 
             for (var n = 0; n < 6; n++) {
                 // anonymous function to induce scope
                 (function() {
                     var i = n;
-                    var box = new Kinetic.Rect({
+                    var box = new Konva.Rect({
                         x: i * 30 + 150,
                         y: i * 18 + 40,
                         fill: colors[i],
@@ -48,7 +50,7 @@
                     box.on("dragstart", function(e) {
                         console.log('dragstart', e)
 
-                        box.moveToTop();
+                        // box.moveToTop();
                         layer.draw();
                     });
 
@@ -78,7 +80,7 @@
             }
 
             stage.add(layer);
-            createImageToLayer()
+            createImageToLayer(layer)
 
 
         };
@@ -87,10 +89,10 @@
     <script>
         var imgBox;
 
-        function createImageToLayer() {
+        function createImageToLayer(layer) {
             let img = new Image();
             img.src = "cat.png";
-            imgBox = new Kinetic.Image({
+            imgBox = new Konva.Image({
                 image: img,
                 x: 6 * 30 + 150,
                 y: 6 * 18 + 40,
@@ -103,7 +105,7 @@
             imgBox.on("dragstart", function(e) {
                 console.log('dragstart', e)
 
-                imgBox.moveToTop();
+                // imgBox.moveToTop();
                 layer.draw();
             });
 
@@ -131,6 +133,7 @@
             });
 
             layer.add(imgBox);
+            console.error(layer.children.length)
             layer.draw();
         }
 
@@ -142,12 +145,11 @@
         }
 
         function changeImageBFromBox() {
-            console.log('changeImageBFromBox', imgBox)
+            console.log('changeImageBFromBox', imgBox);
             let img = new Image();
             img.src = "test.jpg";
             imgBox.setImage(img);
             layer.draw();
-
         }
     </script>
 </head>
