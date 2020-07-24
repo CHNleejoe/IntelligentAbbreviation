@@ -13,10 +13,12 @@ Vue.use(BaiduMap, {
 Vue.use(VCharts)
 Vue.prototype.$api = api;
 
+
 import store from  './store/store'
 
 //引入css重置样式
 import './assets/css/init.css'
+import './assets/css/index.css'
 
 //引入View组件
 import iView from 'iview';
