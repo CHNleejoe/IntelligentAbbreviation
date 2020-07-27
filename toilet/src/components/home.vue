@@ -273,10 +273,11 @@
 </template>
 
 <script>
-import echarts from 'echarts'
+import echarts from "echarts";
 export default {
   data() {
     return {
+      mapInit: "",
       dataLists: [
         { name: "东湖路A厕", num: "323,234" },
         { name: "东湖路B厕", num: "32,234" },
@@ -286,6 +287,44 @@ export default {
         { name: "东湖路F厕", num: "313,234" },
         { name: "东湖路G厕", num: "103,234" },
         { name: "东湖路G厕", num: "103,234" },
+      ],
+      markerArr: [
+        {
+          title: "名称：广州火车站公厕",
+          point: "113.264531,23.157003",
+          lng: "113.264531",
+          lat: "23.157003",
+          address: "广东省广州市广州火车站",
+          tel: "12306",
+          name: "广州火车站公厕",
+        },
+        {
+          title: "名称：广州塔（赤岗塔）公厕",
+          point: "113.330934,23.113401",
+          lng: "113.330934",
+          lat: "23.113401",
+          address: "广东省广州市广州塔（赤岗塔） ",
+          tel: "18500000000",
+          name: "广州塔公厕",
+        },
+        {
+          title: "名称：广州动物园公厕",
+          point: "113.312213,23.147267",
+          lng: "113.312213",
+          lat: "23.147267",
+          address: "广东省广州市广州动物园",
+          tel: "18500000000",
+          name: "广州动物园公厕",
+        },
+        {
+          title: "名称：天河公园公厕",
+          point: "113.372867,23.134274",
+          lng: "113.372867",
+          lat: "23.134274",
+          address: "广东省广州市天河公园",
+          tel: "18500000000",
+          name: "天河公园公厕",
+        },
       ],
     };
   },
@@ -349,7 +388,8 @@ export default {
     },
     initMap() {
       var map = new BMap.Map("allmap"); // 创建Map实例
-      map.centerAndZoom(new BMap.Point(114.09679, 22.55361), 16); // 初始化地图,设置中心点坐标和地图级别
+      this.mapInit = map;
+      map.centerAndZoom(new BMap.Point(113.264531, 23.157003), 12); // 初始化地图,设置中心点坐标和地图级别
       //添加地图类型控件
       map.addControl(
         new BMap.MapTypeControl({
@@ -358,28 +398,107 @@ export default {
       );
       map.setCurrentCity("深圳"); // 设置地图显示的城市 此项是必须设置的
       map.enableScrollWheelZoom(true); //开启鼠标滚轮缩放
-      var geoc = new BMap.Geocoder();
-      map.addEventListener("click", function (e) {
-        //给地图添加点击事件
-        map.clearOverlays();
-        console.log(e);
-        var lng = e.point.lng;
-        var lat = e.point.lat;
-        //创建标注位置
-        var pt = new BMap.Point(lng, lat);
-        var myIcon = new BMap.Icon(
-          "http://lbsyun.baidu.com/jsdemo/img/fox.gif",
-          new BMap.Size(300, 157)
+      for (var i = 0; i < this.markerArr.length; i++) {
+        console.log(this.markerArr[i]);
+        var p0 = this.markerArr[i].lng;
+        var p1 = this.markerArr[i].lat;
+        // console.log(p0,'p0')
+        var maker = this.addMarker(
+          new window.BMap.Point(p0, p1),
+          this.markerArr[i],
+          i
         );
-        var marker2 = new BMap.Marker(pt, { icon: myIcon }); // 创建标注
-        map.addOverlay(marker2); // 将标注添加到地图中
-        //alert(e.point.lng + "," + e.point.lat);
-        geoc.getLocation(pt, function (rs) {
-          var addComp = rs.address;
-          alert("当前位置是:" + addComp);
-          console.log(rs);
-        });
+        this.addInfoWindow(maker, this.markerArr[i], i);
+      }
+      // var geoc = new BMap.Geocoder();
+      // map.addEventListener("click", function (e) {
+      //   //给地图添加点击事件
+      //   map.clearOverlays();
+      //   console.log(e);
+      //   var lng = e.point.lng;
+      //   var lat = e.point.lat;
+      //   //创建标注位置
+      //   var pt = new BMap.Point(lng, lat);
+      //   var myIcon = new BMap.Icon(
+      //     "http://lbsyun.baidu.com/jsdemo/img/fox.gif",
+      //     new BMap.Size(300, 157)
+      //   );
+      //   var marker2 = new BMap.Marker(pt, { icon: myIcon }); // 创建标注
+      //   map.addOverlay(marker2); // 将标注添加到地图中
+      //   //alert(e.point.lng + "," + e.point.lat);
+      //   geoc.getLocation(pt, function (rs) {
+      //     var addComp = rs.address;
+      //     alert("当前位置是:" + addComp);
+      //     console.log(rs);
+      //   });
+      // });
+    },
+    addMarker(point, pro, index) {
+      // console.log(point,'点')
+      var myIcon = new BMap.Icon(
+        "http://api.map.baidu.com/img/markers.png",
+        new BMap.Size(23, 25),
+        {
+          offset: new BMap.Size(10, 25),
+          imageOffset: new BMap.Size(0, 0 - index * 25),
+        }
+      );
+      var marker = new BMap.Marker(point, {
+        icon: myIcon,
       });
+      this.mapInit.addOverlay(marker);
+      var label = new BMap.Label(pro.name, { offset: new BMap.Size(20, -10) });
+      // 设置label样式
+      label.setStyle({
+        color: "#CC3333",
+        fontSize: "13px",
+        backgroundColor: "#CCFFFF",
+        border: "0",
+        fontWeight: "bold",
+      });
+      // marker.setLabel(label);
+      return marker;
+    },
+    addInfoWindow(marker, pro) {
+      //pop弹窗标题
+      // console.log(marker,'marker')
+      // console.log(pro,'pro')
+      var title =
+        '<div style="font-weight:bold;color:#CE5521;font-size:14px">' +
+        pro.title +
+        "</div>";
+      //pop弹窗信息
+      var html = [];
+      html.push(
+        '<table cellspacing="0" style="table-layout:fixed;width:100%;font:12px arial,simsun,sans-serif"><tbody>'
+      );
+      html.push("<tr>");
+      html.push(
+        '<td style="vertical-align:top;line-height:16px;width:38px;white-space:nowrap;word-break:keep-all">地址：</td>'
+      );
+      html.push(
+        '<td style="vertical-align:top;line-height:16px">' +
+          pro.address +
+          " </td>"
+      );
+      html.push("</tr>");
+      html.push(
+        '<td style="vertical-align:top;line-height:16px;width:38px;white-space:nowrap;word-break:keep-all">电话：:</td>'
+      );
+      html.push(
+        `<td style="vertical-align:top;line-height:16px">${pro.tel}</td>`
+      );
+      html.push("</tr>");
+      html.push("</tbody></table>");
+      var infoWindow = new BMap.InfoWindow(html.join(""), {
+        title: title,
+        width: 200,
+      });
+      var openInfoWinFun = function () {
+        marker.openInfoWindow(infoWindow);
+      };
+      marker.addEventListener("click", openInfoWinFun);
+      return openInfoWinFun;
     },
     columnEchartData() {
       var myChart = echarts.init(document.getElementById("colunm"));
