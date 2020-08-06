@@ -12,6 +12,9 @@
   "dependencies": {
     "echarts": "^4.8.0",
     "iview": "^3.5.4",
+    "konva": "^7.0.3",
+    "less": "^3.12.2",
+    "less-loader": "^5.0.0",
     "stylus": "^0.54.7",
     "stylus-loader": "^3.0.2",
     "v-charts": "^1.19.0",

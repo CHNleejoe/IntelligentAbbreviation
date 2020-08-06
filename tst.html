@@ -19,10 +19,11 @@
     <script src="https://unpkg.com/konva@7.0.3/konva.min.js"></script>
 
     <script>
-        var layer,
+        var stage,
+            layer,
             colors;
         window.onload = function() {
-            var stage = new Konva.Stage({
+            stage = new Konva.Stage({
                 container: "container",
                 width: 1078,
                 height: 800,
@@ -51,7 +52,7 @@
                         console.log('dragstart', e)
 
                         // box.moveToTop();
-                        layer.draw();
+                        layer.batchDraw();
                     });
 
                     box.on("dragmove", function() {
@@ -64,7 +65,7 @@
                     box.on("dblclick dbltap", function(e) {
                         console.log('dblclick dbltap', e)
                         layer.remove(box);
-                        layer.draw();
+                        layer.batchDraw();
                     });
 
                     box.on("mouseover", function(e) {
@@ -106,7 +107,7 @@
                 console.log('dragstart', e)
 
                 // imgBox.moveToTop();
-                layer.draw();
+                layer.batchDraw();
             });
 
             imgBox.on("dragmove", function(e) {
@@ -121,7 +122,7 @@
             imgBox.on("dblclick dbltap", function(e) {
                 console.log('dblclick dbltap', e)
                 layer.remove(imgBox);
-                layer.draw();
+                layer.batchDraw();
             });
 
             imgBox.on("mouseover", function(e) {
@@ -134,13 +135,13 @@
 
             layer.add(imgBox);
             console.error(layer.children.length)
-            layer.draw();
+            layer.batchDraw();
         }
 
         function removeImageFromLayer() {
             console.log('removeImageFromLayer', layer.children)
             layer.children[5].remove()
-            layer.draw();
+            layer.batchDraw();
 
         }
 
@@ -149,7 +150,7 @@
             let img = new Image();
             img.src = "test.jpg";
             imgBox.setImage(img);
-            layer.draw();
+            imgBox.draw();
         }
     </script>
 </head>
