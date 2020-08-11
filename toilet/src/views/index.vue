@@ -2,7 +2,8 @@
   <div class="main">
       <!-- <lineChart></lineChart> -->
       <!-- <Map></Map> -->
-      <Home/>
+      <!-- <Home/> -->
+      <Index></Index>
   </div>
 </template>
 
@@ -10,12 +11,14 @@
 import lineChart from './vcharts/line/line'
 import Map from './map/baiduMap'
 import Home from '../components/home'
+import Index from '../components/index'
 export default {
   name: "index",
   components:{
     lineChart,
     Map,
-    Home
+    Home,
+    Index
   },
   data() {
     return {

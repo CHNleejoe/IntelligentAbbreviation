@@ -396,7 +396,7 @@ export default {
           mapTypes: [BMAP_NORMAL_MAP, BMAP_HYBRID_MAP],
         })
       );
-      map.setCurrentCity("深圳"); // 设置地图显示的城市 此项是必须设置的
+      map.setCurrentCity("广州"); // 设置地图显示的城市 此项是必须设置的
       map.enableScrollWheelZoom(true); //开启鼠标滚轮缩放
       for (var i = 0; i < this.markerArr.length; i++) {
         console.log(this.markerArr[i]);
@@ -410,28 +410,6 @@ export default {
         );
         this.addInfoWindow(maker, this.markerArr[i], i);
       }
-      // var geoc = new BMap.Geocoder();
-      // map.addEventListener("click", function (e) {
-      //   //给地图添加点击事件
-      //   map.clearOverlays();
-      //   console.log(e);
-      //   var lng = e.point.lng;
-      //   var lat = e.point.lat;
-      //   //创建标注位置
-      //   var pt = new BMap.Point(lng, lat);
-      //   var myIcon = new BMap.Icon(
-      //     "http://lbsyun.baidu.com/jsdemo/img/fox.gif",
-      //     new BMap.Size(300, 157)
-      //   );
-      //   var marker2 = new BMap.Marker(pt, { icon: myIcon }); // 创建标注
-      //   map.addOverlay(marker2); // 将标注添加到地图中
-      //   //alert(e.point.lng + "," + e.point.lat);
-      //   geoc.getLocation(pt, function (rs) {
-      //     var addComp = rs.address;
-      //     alert("当前位置是:" + addComp);
-      //     console.log(rs);
-      //   });
-      // });
     },
     addMarker(point, pro, index) {
       // console.log(point,'点')

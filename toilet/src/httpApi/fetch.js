@@ -1,8 +1,10 @@
 import axios from 'axios'
 
+
 export function get(url, params){
     return new Promise((resolve, reject)=>{
-        axios.get(url, {
+        let str = localStorage.getItem('jeeplus.session.id')?'?jeeplus.session.id='+localStorage.getItem('jeeplus.session.id'):'';
+        axios.get(url+str,{
             params
         }).then(res=>{
             resolve(res.data);

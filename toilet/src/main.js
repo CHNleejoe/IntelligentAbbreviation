@@ -7,12 +7,12 @@ import api from './httpApi/api'
 import './httpApi/fetch'
 import VCharts from 'v-charts'
 import BaiduMap from 'vue-baidu-map'
+
 Vue.use(BaiduMap, {
   ak: 'dcsylBb7nOrDMqsh0K0uekos9WoGGr8C'
 });
 Vue.use(VCharts)
 Vue.prototype.$api = api;
-
 
 import store from  './store/store'
 
@@ -27,8 +27,6 @@ Vue.use(iView);
 
 
 Vue.config.productionTip = false
-
-/* eslint-disable no-new */
 new Vue({
   el: '#app',
   router,
