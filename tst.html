@@ -1,0 +1,164 @@
+<!DOCTYPE HTML lang='en'>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+
+    <style>
+        body {
+            margin: 0px;
+            padding: 0px;
+        }
+        
+        canvas {
+            border: 1px solid #9C9898;
+            margin: 100px;
+        }
+    </style>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/kineticjs/5.2.0/kinetic.js"></script> -->
+    <script src="https://unpkg.com/konva@7.0.3/konva.min.js"></script>
+
+    <script>
+        var stage,
+            layer,
+            colors;
+        window.onload = function() {
+            stage = new Konva.Stage({
+                container: "container",
+                width: 1078,
+                height: 800,
+
+            });
+            layer = new Konva.Layer();
+            colors = ["red", "orange", "yellow", "green", "blue", "purple"];
+
+            for (var n = 0; n < 6; n++) {
+                // anonymous function to induce scope
+                (function() {
+                    var i = n;
+                    var box = new Konva.Rect({
+                        x: i * 30 + 150,
+                        y: i * 18 + 40,
+                        fill: colors[i],
+                        stroke: "black",
+                        name: `${i}${i}${i}${i}${i}`,
+                        strokeWidth: 4,
+                        draggable: true,
+                        width: 100,
+                        height: 50
+                    });
+
+                    box.on("dragstart", function(e) {
+                        console.log('dragstart', e)
+
+                        // box.moveToTop();
+                        layer.batchDraw();
+                    });
+
+                    box.on("dragmove", function() {
+                        document.body.style.cursor = "pointer";
+                    });
+                    /*
+                     * dblclick to remove box for desktop app
+                     * and dbltap to remove box for mobile app
+                     */
+                    box.on("dblclick dbltap", function(e) {
+                        console.log('dblclick dbltap', e)
+                        layer.remove(box);
+                        layer.batchDraw();
+                    });
+
+                    box.on("mouseover", function(e) {
+
+                        document.body.style.cursor = "pointer";
+                    });
+                    box.on("mouseout", function() {
+                        document.body.style.cursor = "default";
+                    });
+
+                    layer.add(box);
+                })();
+            }
+
+            stage.add(layer);
+            createImageToLayer(layer)
+
+
+        };
+    </script>
+
+    <script>
+        var imgBox;
+
+        function createImageToLayer(layer) {
+            let img = new Image();
+            img.src = "cat.png";
+            imgBox = new Konva.Image({
+                image: img,
+                x: 6 * 30 + 150,
+                y: 6 * 18 + 40,
+                name: `asdasdasdasd`,
+                draggable: true,
+                width: 100,
+                height: 50
+            });
+
+            imgBox.on("dragstart", function(e) {
+                console.log('dragstart', e)
+
+                // imgBox.moveToTop();
+                layer.batchDraw();
+            });
+
+            imgBox.on("dragmove", function(e) {
+                console.log('dragstart', e, e.target.attrs.name)
+
+                document.body.style.cursor = "pointer";
+            });
+            /*
+             * dblclick to remove imgBox for desktop app
+             * and dbltap to remove imgBox for mobile app
+             */
+            imgBox.on("dblclick dbltap", function(e) {
+                console.log('dblclick dbltap', e)
+                layer.remove(imgBox);
+                layer.batchDraw();
+            });
+
+            imgBox.on("mouseover", function(e) {
+
+                document.body.style.cursor = "pointer";
+            });
+            imgBox.on("mouseout", function() {
+                document.body.style.cursor = "default";
+            });
+
+            layer.add(imgBox);
+            console.error(layer.children.length)
+            layer.batchDraw();
+        }
+
+        function removeImageFromLayer() {
+            console.log('removeImageFromLayer', layer.children)
+            layer.children[5].remove()
+            layer.batchDraw();
+
+        }
+
+        function changeImageBFromBox() {
+            console.log('changeImageBFromBox', imgBox);
+            let img = new Image();
+            img.src = "test.jpg";
+            imgBox.setImage(img);
+            imgBox.draw();
+        }
+    </script>
+</head>
+
+<body οnmοusedοwn="return false;">
+    <div id="container" border='1'></div>
+    <button onclick="removeImageFromLayer()">移除</button>
+    <button onclick="changeImageBFromBox()">改变图片</button>
+</body>
+
+</html>

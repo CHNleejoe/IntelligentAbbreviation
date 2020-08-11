@@ -37,7 +37,29 @@ const vartolet = {
     },
     getToiletInfo(param){//根据公厕id获取公厕信息
         return get('/api/v1/statistics/get/toiletInfo',param)
-    }
+    },
 
+    getGraphStyle(param) {
+        return get('api/v1/get/graphStyle', param)
+    },
+    graphById(param) {
+        return get('api/v1/get/graphById', param)
+    },
+    pointTables(param) {
+        return get('api/v1/get/pointTables', param)
+    },
+    type(param) {
+        return get('api/v1/get/type', param)
+    },
+    deviceByType(param) {
+        return get('api/v1/get/deviceByType', param)
+    },
+    pointTables(param) {
+        return get('api/v1/get/pointTables', param)
+    },
+    saveGraph(param) {
+        return post('api/v1/saveGraph', param)
+    },
 }
+
 export default vartolet

@@ -1990,8 +1990,8 @@ export default {
     let jepSession = window.location.href.split("token=")[1] || "";
     let sessionId = this.$route.query.jepSessionId || jepSession;
 
-    // this.setCookie("17925c935b634166ab3d145b388afbe7");
-    this.setCookie(sessionId)
+    this.setCookie("e3260062f761457696ec755647be01ae");
+    // this.setCookie(sessionId)
 
     this.toiletNumber();
     this.visitors();
