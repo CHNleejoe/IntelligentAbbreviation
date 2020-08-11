@@ -7,7 +7,7 @@
             </div>
             <div class="buttons">
                 <Button size='large' class="width Button-btn">取消</Button>
-                <Button type="primary" size='large' class="width Button-btn">确定</Button>
+                <Button type="primary" size='large' class="width Button-btn" @click="submitAllLegendImageInfo">确定</Button>
             </div>
         </div>
         <div class="main">
@@ -21,6 +21,16 @@
                         <div class="img-label">{{item.name}}</div>
                         <div class="type-add" @click="createImageToLayer(item)"></div>
                     </div>
+                    <div class="type-item">
+                        <img src="../../../static/imgs/cat.png" alt="">
+                        <div class="img-label">文本标签</div>
+                        <div class="type-add" @click="createLabelToLayer"></div>
+                    </div>
+                    <div class="type-item">
+                        <img src="../../../static/imgs/cat.png" alt="">
+                        <div class="img-label">特殊文本</div>
+                        <div class="type-add" @click="createSpecicalLabelToLayer"></div>
+                    </div>
                 </div>
             </div>
             <div class='canvas' οnmοusedοwn="return false;">
@@ -28,6 +38,7 @@
                     <Button class="Button-btn" type="primary" size='large' @click="scaleImageFromLayer(1)">设备图标放大</Button>
                     <Button class="Button-btn" type="primary" size='large' @click="scaleImageFromLayer(0)">设备图标缩小</Button>
                     <Button class="Button-btn" type="success" size='large' @click="spinImageFromLayer">旋转</Button>
+                    <Button class="Button-btn" type="success" size='large' @click="changeImageFromBox">改变</Button>
 
                     <!-- <button @click="removeImageFromLayer">移除</button>
                     <button @click="changeImageFromBox">改变图片</button>
@@ -35,41 +46,95 @@
                 </div>
                 <div id="konvaContainer"></div>
             </div>
-            <div class="set">
+            <div class="set image" v-show="legendType == 0">
                 <!-- <div class="label">
                     已添加设备
                 </div> -->
                 <div class="search">
-                    <Input search enter-button="确定" placeholder="请输入设备编号/类型/标签" />
+                    <Input search enter-button="确定" placeholder="请输入点表名称" v-model="keyword" @on-search='requestPointTables(0)'/>
                     <div class="select">
                         设备类型
-                        <Select v-model="model1" style="width:237px">
-                            <Option v-for="item in cityList" :value="item.value" :key="item.value">{{ item.label }}</Option>
+                        <Select v-model="equipmentType" style="width:237px" @on-change='requestEquipmentNames'>
+                            <Option v-for="item in equipmentTypeList" :value="item.value" :key="item.value">{{ item.label }}</Option>
                         </Select>
                     </div>
                     <div class="select">
                         设备名称
-                        <Select v-model="model1" style="width:237px">
-                            <Option v-for="item in cityList" :value="item.value" :key="item.value">{{ item.label }}</Option>
+                        <Select v-model="equipmentName" style="width:237px" @on-change='requestPointTables(1)'>
+                            <Option v-for="(item,index) in equipmentNameList" :value="item.id" :key="index">{{ item.name }}</Option>
                         </Select>
                     </div>
                     <div class="select">
                         点表名称
-                        <Select v-model="model1" style="width:237px">
-                            <Option v-for="item in cityList" :value="item.value" :key="item.value">{{ item.label }}</Option>
+                        <Select v-model="pointTableId" style="width:237px" @on-change='selectPointTable'>
+                            <Option v-for="(item,index) in pointTableList" :value="item.id" :key="index" >{{ item.name }}</Option>
                         </Select>
                     </div>
                 </div>
                 <div class="set-infos">
-                    <div class="info-name">序号：1</div>
-                    <div>设备类型：人体红外</div>
-                    <div>设备序列号：3442ass</div>
-                    <div>设备标签：sdfa</div>
-                    <div>厕位表识：男厕</div>
+                    <div class="info-name">地址码：{{selectedInfo.addressCode}}</div>
+                    <div>设备类型：{{selectedInfo.type}}</div>
+                    <div>设备名称：{{selectedInfo.name}}</div>
+                    <div>设备序列号：{{selectedInfo.serialNo}}</div>
+                    <div>设备标签：{{selectedInfo.tag}}</div>
+                    <div>厕位表识：{{selectedInfo.sex}}</div>
                     <div class="btns">
-                        <Button class="bnt-item" size='small' type="success">完成</Button>
+                        <Button class="bnt-item" size='small' type="success" @click="editLengedInfoForImage">完成</Button>
                         <Button class="bnt-item" size='small' type="error" @click="removeImageFromLayer">移除</Button>
                     </div>
+                </div>
+            </div>
+            <div class="set label" v-show="legendType == 1">
+                <div class="search">
+                    <div class="p">请选择字体颜色  &nbsp;&nbsp;<ColorPicker v-model="labelColor" alpha />
+                    <Button class="bnt-item"  type="error" @click="removeImageFromLayer">移除</Button></div>
+                    <Input search enter-button="确定" placeholder="请输入文本标签内容" v-model="keyword" @on-search='editLabel'/>
+                </div>
+            </div>
+            <div class="set specical" v-show="legendType == 2">
+                <div class="search">
+                    <div class="select">
+                        文本类型
+                        <Select v-model="labelType" style="width:237px" >
+                            <Option v-for="(item,index) in labelTypeList" :value="item.id" :key="index" >{{ item.name }}</Option>
+                        </Select>
+                    </div>
+                </div>
+                <div class="search" v-show="labelType == 0">
+                    <Input search enter-button="确定" placeholder="请输入点表名称" v-model="keyword" @on-search='requestPointTables(0)'/>
+                    <div class="select">
+                        设备类型
+                        <Select v-model="equipmentType" style="width:237px" @on-change='requestEquipmentNames'>
+                            <Option v-for="item in equipmentTypeList" :value="item.value" :key="item.value">{{ item.label }}</Option>
+                        </Select>
+                    </div>
+                    <div class="select">
+                        设备名称
+                        <Select v-model="equipmentName" style="width:237px" @on-change='requestPointTables(1)'>
+                            <Option v-for="(item,index) in equipmentNameList" :value="item.id" :key="index">{{ item.name }}</Option>
+                        </Select>
+                    </div>
+                    <div class="select">
+                        点表名称
+                        <Select v-model="pointTableId" style="width:237px" @on-change='selectPointTable'>
+                            <Option v-for="(item,index) in pointTableList" :value="item.id" :key="index" >{{ item.name }}</Option>
+                        </Select>
+                    </div>
+                </div>
+                <div class="set-infos" v-show="labelType == 0">
+                    <div class="info-name">地址码：{{selectedInfo.addressCode}}</div>
+                    <div>设备类型：{{selectedInfo.type}}</div>
+                    <div>设备名称：{{selectedInfo.name}}</div>
+                    <div>设备序列号：{{selectedInfo.serialNo}}</div>
+                    <div>设备标签：{{selectedInfo.tag}}</div>
+                    <div>厕位表识：{{selectedInfo.sex}}</div>
+                    <div class="btns">
+                        <Button class="bnt-item" size='small' type="success" @click="editLengedInfoForImage">完成</Button>
+                        <Button class="bnt-item" size='small' type="error" @click="removeImageFromLayer">移除</Button>
+                    </div>
+                </div>
+                <div class="set-url" v-show="labelType == 1">
+                    <Input search enter-button="确定" placeholder="请输入请求地址" v-model="keyword" @on-search='requestPointTables(0)'/>
                 </div>
             </div>
         </div>
@@ -82,6 +147,12 @@
     export default {
         data() {
             return {
+                // 公厕id
+                toiletId: 6,
+                // 平面图id
+                id: 1,
+
+                // 结构图基础数据和图层数据
                 stage: null,
                 stageInfo: {
                     width: 1135,
@@ -91,33 +162,35 @@
                 legendImageList: [],
                 legendList: [],
                 onClickedIndex: null,
-                cityList: [
-                    {
-                        value: 'New York',
-                        label: 'New York'
-                    },
-                    {
-                        value: 'London',
-                        label: 'London'
-                    },
-                    {
-                        value: 'Sydney',
-                        label: 'Sydney'
-                    },
-                    {
-                        value: 'Ottawa',
-                        label: 'Ottawa'
-                    },
-                    {
-                        value: 'Paris',
-                        label: 'Paris'
-                    },
-                    {
-                        value: 'Canberra',
-                        label: 'Canberra'
-                    }
+                //图点表对应数据
+                legendPointTableDataList: [],
+                keyword: '',
+
+                //设备类型选择
+                equipmentType: '',
+                equipmentTypeList: [],
+                //设备名称选择
+                equipmentName: '',
+                equipmentNameList: [],
+                //点表选择
+                pointTableId: '',
+                pointTableList:[],
+
+                labelTypeList:[
+                    {name: '设备点表', id: '0'},
+                    {name: '请求地址', id: '1'},
                 ],
-                model1: ''
+                labelType: '0',
+
+                //选中数据
+                selectedInfo: {
+
+                },
+
+                labelColor: 'rgba(250,252,255,1)',
+                
+                //  0 是图例   1 是纯文本   2 是特殊文本
+                legendType: 2,
             };
         },
         methods: {
@@ -138,7 +211,8 @@
                     rotation: 0,
                     scaleX:.5,
                     scaleY: .5,
-                    legendInfo: item
+                    legendInfo: item,
+                    legendType: 0
                 });
 
                 imgBox.on("dragstart", function(e) {
@@ -147,6 +221,8 @@
                     for(let i = 0; i < layer.children.length; i++) {
                         if(layer.children[i].attrs.legendInfo.id == id ) {
                             that.onClickedIndex = i
+                            that.legendType = 0
+                            that.keyword = ''
                             return
                         }
                     }
@@ -162,6 +238,8 @@
                     for(let i = 0; i < layer.children.length; i++) {
                         if(layer.children[i].attrs.legendInfo.id == id ) {
                             that.onClickedIndex = i
+                            that.legendType = 0
+                            that.keyword = ''
                             return
                         }
                     }
@@ -180,6 +258,8 @@
                     imgBox.attrs.legendInfo.id = layer.children[layer.children.length - 1].attrs.legendInfo.id + 1
                 }
                 that.onClickedIndex = layer.children.length?layer.children.length:0
+                that.legendType = 0
+
                 layer.add(imgBox);
                 setTimeout(function() {
                     layer.batchDraw();
@@ -187,6 +267,144 @@
                 
 
                 that.legendImageList.push(imgBox)
+            },
+            createLabelToLayer() {
+                const that = this;
+                var layer = that.legendLayer
+                var textBox = new Konva.Text({
+                    x: that.stageInfo.width/2,
+                    y: that.stageInfo.height/2,
+                    text: 'Simple Text',
+                    fontSize: 30,
+                    name: '特殊文本',
+                    fontFamily: 'Calibri',
+                    draggable: true,
+                    fill: 'white',
+                    legendType: 1,
+                    legendInfo: {
+                        
+                    }
+                });
+
+                textBox.on("dragstart", function(e) {
+                    console.log('dragstart', layer.children, e.target.attrs.legendInfo)
+                    let id = e.target.attrs.legendInfo.id
+                    for(let i = 0; i < layer.children.length; i++) {
+                        if(layer.children[i].attrs.legendInfo.id == id ) {
+                            that.onClickedIndex = i
+                            that.legendType = 1
+                            that.keyword = ''
+                            return
+                        }
+                    }
+                });
+
+                textBox.on("dragmove", function(e) {
+                    document.body.style.cursor = "pointer";
+                });
+                
+                textBox.on("click", function(e) {
+                    console.log('click', layer.children, e.target.attrs.legendInfo)
+                    let id = e.target.attrs.legendInfo.id
+                    for(let i = 0; i < layer.children.length; i++) {
+                        if(layer.children[i].attrs.legendInfo.id == id ) {
+                            that.onClickedIndex = i
+                            that.legendType = 1
+                            that.keyword = ''
+                            return
+                        }
+                    }
+                });
+             
+                textBox.on("mouseover", function(e) {
+                    document.body.style.cursor = "pointer";
+                });
+                textBox.on("mouseout", function() {
+                    document.body.style.cursor = "default";
+                });
+
+                if(!layer.children.length) {
+                    textBox.attrs.legendInfo.id = 0
+                }else {
+                    textBox.attrs.legendInfo.id = layer.children[layer.children.length - 1].attrs.legendInfo.id + 1
+                }
+
+                that.onClickedIndex = layer.children.length?layer.children.length:0
+                that.legendType = 1
+
+                layer.add(textBox);
+                setTimeout(function() {
+                    layer.batchDraw();
+                },200)
+            },
+            createSpecicalLabelToLayer() {
+                const that = this;
+                var layer = that.legendLayer
+                var textBox = new Konva.Text({
+                    x: that.stageInfo.width/2,
+                    y: that.stageInfo.height/2,
+                    text: '0',
+                    fontSize: 30,
+                    name: '文本标签',
+                    fontFamily: 'Calibri',
+                    draggable: true,
+                    fill: 'white',
+                    legendType: 2,
+                    legendInfo: {
+                        
+                    }
+                });
+
+                textBox.on("dragstart", function(e) {
+                    console.log('dragstart', layer.children, e.target.attrs.legendInfo)
+                    let id = e.target.attrs.legendInfo.id
+                    for(let i = 0; i < layer.children.length; i++) {
+                        if(layer.children[i].attrs.legendInfo.id == id ) {
+                            that.onClickedIndex = i
+                            that.legendType = 2
+                            that.keyword = ''
+                            return
+                        }
+                    }
+                });
+
+                textBox.on("dragmove", function(e) {
+                    document.body.style.cursor = "pointer";
+                });
+                
+                textBox.on("click", function(e) {
+                    console.log('click', layer.children, e.target.attrs.legendInfo)
+                    let id = e.target.attrs.legendInfo.id
+                    for(let i = 0; i < layer.children.length; i++) {
+                        if(layer.children[i].attrs.legendInfo.id == id ) {
+                            that.onClickedIndex = i
+                            that.legendType = 2
+                            that.keyword = ''
+                            return
+                        }
+                    }
+                });
+             
+                textBox.on("mouseover", function(e) {
+                    document.body.style.cursor = "pointer";
+                });
+                textBox.on("mouseout", function() {
+                    document.body.style.cursor = "default";
+                });
+
+                if(!layer.children.length) {
+                    textBox.attrs.legendInfo.id = 0
+                }else {
+                    textBox.attrs.legendInfo.id = layer.children[layer.children.length - 1].attrs.legendInfo.id + 1
+                }
+
+                that.onClickedIndex = layer.children.length?layer.children.length:0
+                that.legendType = 2
+
+                layer.add(textBox);
+                setTimeout(function() {
+                    layer.batchDraw();
+                },200)
             },
             removeImageFromLayer() {
                 console.log('removeImageFromLayer', this.legendLayer.children)
@@ -233,16 +451,24 @@
                 }, 0)
             },
             changeImageFromBox() {
-                console.log('changeImageBFromBox', imgBox);
+                const that = this;
+
+                if(that.onClickedIndex == null) {
+                    this.$Message.warning('未选中图例');
+                    return
+                }
+                var imgBox = that.legendLayer.children[that.onClickedIndex]
                 let img = new Image();
-                img.src = "test.jpg";
+                img.src = "https://jhzh.epipe.cn/call43825261263553536.jpg";
                 imgBox.setImage(img);
-                imgBox.draw();
+                setTimeout(function() {
+                    that.legendLayer.draw()
+                }, 0)
             },
             renderLegendsByRequest() {
                 const that = this;
                 let params_getGraphStyle = {
-                    toiletId: 6
+                    toiletId: that.toiletId
                 }
                 that.$api.getGraphStyle(params_getGraphStyle).then(res => {
 
@@ -256,15 +482,16 @@
             },
             renderBaseImageByRequest() {
                 const that = this;
+                
                 let params_graphById = {
-                    id: 1
+                    id: that.id
                 }
                 that.$api.graphById(params_graphById).then(res => {
 
                     that.$util.parseRequest(res,function() {
 
                         console.log(res,'graphById')
-                        var layer = that.legendLayer
+                        var layer = new Konva.Layer();
                         let img = new Image();
                         img.src = res.b.graphUrl;
                         
@@ -282,12 +509,150 @@
                             legendInfo: res.b
                         });
                         layer.add(imgBox);
+                        that.stage.add(layer);
                         setTimeout(function() {
                             layer.batchDraw();
+                            layer.moveToBottom()
                         },200)
                     })
                 })
+            },
+            renderEvaryHasDataChangedImageFromLayer() {
+                const that = this;
+                let params = {
+                    toiletId: that.toiletId
+                }
+                that.$api.pointTables(params).then(res => {
+
+                    that.$util.parseRequest(res,function() {
+
+                        console.log(res,'pointTables')
+                        let beforeLegendPointTableDataList = JSON.parse(JSON.stringify(that.legendPointTableDataList))
+
+                        that.legendPointTableDataList = res.b
+
+                        that.legendLayer.children.map(item => {
+                            item.attrs.legendInfo.equipmentData
+                        })
+                        that.legendLayer.draw()
+                    })
+                })
+            },
+            requestEquipments() {
+                const that = this;
+                let params = {
+                    toiletId: that.toiletId
+                }
+                that.$api.type(params).then(res => {
+
+                    that.$util.parseRequest(res,function() {
+                        console.log(res,'type')
+                        Object.keys(res.b).map(item => {
+                            let section = {}
+                            section.label = res.b[item]
+                            section.value = item
+                            that.equipmentTypeList.push(section)
+                        })
+                    })
+                })
+            },
+            requestEquipmentNames() {
+                const that = this;
+                if(that.onClickedIndex == null) {
+                    this.$Message.warning('未选中图例');
+                    return
+                }
+                let params = {
+                    toiletId: 13,
+                    type: that.equipmentType
+                }
+                that.$api.deviceByType(params).then(res => {
+
+                    that.$util.parseRequest(res,function() {
+                        console.log(res,'deviceByType')
+                        that.equipmentNameList = res.b
+                    })
+                })
+            },
+            requestPointTables(flag) {
+                const that = this;
+                if(that.onClickedIndex == null) {
+                    this.$Message.warning('未选中图例');
+                    return
+                }
+                let params = {
+                    toiletId: 13
+                }
+                flag == 0?params.key = that.keyword:''
+                flag == 1?params.deviceId = that.equipmentName:''
+
+                that.$api.pointTables(params).then(res => {
+
+                    that.$util.parseRequest(res,function() {
+                        console.log(res,'pointTables')
+
+                        flag == 0?that.selectedInfo = res.b[0]:''
+                        flag == 1?that.pointTableList = res.b:''
+                    })
+                })
+            },
+            selectPointTable(e) {
+                const that = this;
+                if(that.onClickedIndex == null) {
+                    this.$Message.warning('未选中图例');
+                    return
+                }
+                let tag = {}
+                for(let item of this.pointTableList) {
+                    if(item.id == e) {
+                        tag = item
+                    }
+                }
+                console.warn(tag)
+                this.selectedInfo = tag
+            },
+            editLengedInfoForImage() {
+                const that = this;
+                if(that.onClickedIndex == null) {
+                    this.$Message.warning('未选中图例');
+                    return
+                } 
+                that.legendLayer.children[that.onClickedIndex].attrs.legendInfo.equipmentInfo = that.selectedInfo
+            },
+            editLabel() {
+                const that = this;
+                if(that.onClickedIndex == null) {
+                    this.$Message.warning('未选中图例');
+                    return
+                }
+                that.legendLayer.children[that.onClickedIndex].fill(that.labelColor)
+                that.legendLayer.children[that.onClickedIndex].setAttr('text', that.keyword)
+                that.legendLayer.children[that.onClickedIndex].attrs.legendInfo.equipmentInfo = that.selectedInfo
+                setTimeout(function() {
+                    that.legendLayer.batchDraw();
+                },200)
+            },
+            
+            submitAllLegendImageInfo() {
+                const that = this;
+                let dataList = []
+                that.legendLayer.children.map(item => {
+                    dataList.push(item.attrs)
+                })
+
+                let params = {
+                    id: that.id,
+                    json: JSON.stringify(dataList)
+                }
+                that.$api.saveGraph(params).then(res => {
+
+                    that.$util.parseRequest(res,function() {
+                        console.log(res,'saveGraph')
+                        that.$Message.success('保存成功');
+                    })
+                })
             }
+
         },
         created() {
             console.log(Konva, 'Konva')
@@ -307,6 +672,7 @@
             // that.createImageToLayer()
             console.log(that.legendImageIndex,that.legendLayer.children)
             that.renderBaseImageByRequest()
+            that.requestEquipments()
         }
     };
 </script>
@@ -522,6 +888,25 @@
                             margin-left: 30px;
                         }
                     }
+                }
+            }
+            .label{
+                .search{
+                    .p{
+                        padding-bottom: 20px;
+                    }
+                }
+                
+            }
+            .specical{
+                .set-url{
+                    box-sizing: border-box;
+                    padding: 23px 31px 20px;
+                    font-size:14px;
+                    font-family:Source Han Sans CN;
+                    font-weight:400;
+                    color:rgba(102,102,102,1);
+                    position: relative;
                 }
             }
         }
