@@ -55,6 +55,20 @@
         data() {
             return {
                 stage: null,
+                stageInfo: {
+                    width: 1800,
+                    height:956
+                },
+                drawStageInfo: {
+                    width: 1135,
+                    height:616
+                },
+                //图点表对应数据
+                legendPointTableDataList: [],
+                // 有绑定设备的图例书籍
+                hasEquipmentsImageIndex: [],
+                apiList: [],
+
                 legendLayer: null,
                 colorList: null,
                 legendImageList: []
@@ -137,71 +151,208 @@
                         console.log(that.$util,'getGraphStyle')
                     })
                 })
-            }
+            },
+            renderImageForRequest() {
+                const that = this;
+                let params_graphById = {
+                    id: that.id
+                }
+                that.$api.graphById(params_graphById).then(res => {
+
+                    that.$util.parseRequest(res,function() {
+
+                        console.log(res,'graphById')
+                        // 底图添加
+                        var layer = new Konva.Layer();
+                        let img = new Image();
+                        img.src = res.b.graphUrl;
+                        
+                        var imgBox = new Konva.Image({
+                            image: img,
+                            x: 0,
+                            y: 0,
+                            name: res.b.name,
+                            draggable: false,
+                            width: that.stageInfo.width,
+                            height: that.stageInfo.height,
+                            rotation: 0,
+                            scaleX: 1,
+                            scaleY: 1,
+                            legendInfo: res.b
+                        });
+                        layer.add(imgBox);
+                        that.stage.add(layer);
+
+
+                        // 图例添加
+                        that.legendLayer =  new Konva.Layer();
+                        var imagesList = JSON.parse(res.b.graphJson)
+                        imagesList.map(item =>{
+                            if(item.legendType == 0) {
+                                item.width = that.stageInfo.width/(that.drawStageInfo.width * 1.0) * item.width
+                                item.height = that.stageInfo.width/(that.drawStageInfo.width * 1.0) * item.height
+                                let tmpImg = new Image();
+                                tmpImg.src = item.legendInfo.url
+                                item.image = tmpImg
+                            } else {
+                                item.fontSize = that.stageInfo.width/(that.drawStageInfo.width * 1.0) * item.fontSize
+                            }
+                            item.draggable = false
+                            item.x = that.stageInfo.width/(that.drawStageInfo.width * 1.0) * item.x
+                            item.y = that.stageInfo.height/(that.drawStageInfo.height * 1.0) * item.y
+
+                            if(item.legendType == 0) {
+                                var lengedImgBox = new Konva.Image(item);
+                            } else {
+                                lengedImgBox = new Konva.Text(item);
+                            }
+                            that.legendLayer.add(lengedImgBox)
+                        })
+                        that.stage.add(that.legendLayer);
+                        // 渲染
+                        setTimeout(function() {
+                            layer.batchDraw();
+                            that.legendLayer.batchDraw()
+                            layer.moveToBottom()
+                        },200)
+                        console.log(imagesList, 'imagesList');
+                        that.renderEvaryHasDataChangedImageFromLayer()
+                    })
+                })
+            },
+            // 依据点表数据进行变更页中的每一个图例信息
+            renderEvaryHasDataChangedImageFromLayer() {
+                const that = this;
+                let params = {
+                    toiletId: that.toiletId
+                }
+                let apiList = []
+                that.$api.deviceData(params).then(res => {
+
+                    that.$util.parseRequest(res,function() {
+
+                        console.log(res,'deviceData')
+                        let beforeLegendPointTableDataList = JSON.parse(JSON.stringify(that.legendPointTableDataList))
+
+                        that.legendPointTableDataList = res.b
+                        
+
+                        // 第一次请求进行确定点表数据位置
+                        if(beforeLegendPointTableDataList.length == 0) {
+                            console.warn(that.legendLayer.children);
+                            
+                            that.legendLayer.children.map((item,index) => {
+                                console.log(index, item);
+                                if(item.attrs.legendInfo.equipmentInfo) {
+                                    let lengedImageEqepeId = item.attrs.legendInfo.equipmentInfo.id
+                                    that.hasEquipmentsImageIndex.push(index)
+
+                                    for(let ptindex = 0;ptindex < that.legendPointTableDataList.length; ptindex ++) {
+                                        if(that.legendPointTableDataList[ptindex].id == lengedImageEqepeId) {
+                                            item.attrs.legendInfo.pointTabelDataIndex = ptindex
+                                            return
+                                        }
+                                    }
+                                }
+                                if(item.attrs.legendInfo.api) {
+                                    that.apiList.push({
+                                        api: item.attrs.legendInfo.api,
+                                        index: index
+                                    })
+                                }
+                            })
+                        }
+
+                        // 进行渲染区分
+                        that.hasEquipmentsImageIndex.map(lengedImgEquipIndex => {
+                            let legend = that.legendLayer.children[lengedImgEquipIndex]
+                            let ptdata = that.legendPointTableDataList[legend.attrs.legendInfo.pointTabelDataIndex]
+                            if(legend.attrs.legendInfo.styleType == 1) {
+                                if(legend.attrs.pointTabelData) {
+                                    let imageUrl = ''
+                                    imageUrl = legend.attrs.pointTabelData.value ? legend.attrs.legendInfo.urlForTrue : legend.attrs.legendInfo.urlForTrue
+                                    let img = new Image();
+                                    img.src = imageUrl;
+                                    legend.setImage(img);
+                                } else {
+
+                                }
+                                
+                            } else {
+
+                            }
+                            console.warn(legend, ptdata, '绑定的设备的信息');
+                        })
+
+                        that.legendLayer.draw()
+                    })
+                })
+            },
+            getQueryVariable(variable){
+                const that = this
+                var query = window.location.href;
+                var vars = query.split("?");
+                vars = vars[1].split('&')
+                for (var i=0;i<vars.length;i++) {
+                        var pair = vars[i].split("=");
+                        that[pair[0]] = pair[1]
+                        console.log(pair, 'getQueryVariable')
+                }
+            },
+            renderBaseImageByRequest() {
+                const that = this;
+                
+                let params_graphById = {
+                    id: that.id
+                }
+                that.$api.graphById(params_graphById).then(res => {
+
+                    that.$util.parseRequest(res,function() {
+
+                        console.log(res,'graphById')
+                        var layer = new Konva.Layer();
+                        let img = new Image();
+                        img.src = res.b.graphUrl;
+                        
+                        var imgBox = new Konva.Image({
+                            image: img,
+                            x: 0,
+                            y: 0,
+                            name: res.b.name,
+                            draggable: false,
+                            width: that.stageInfo.width,
+                            height: that.stageInfo.height,
+                            rotation: 0,
+                            scaleX: 1,
+                            scaleY: 1,
+                            legendInfo: res.b
+                        });
+                        layer.add(imgBox);
+                        that.stage.add(layer);
+                        setTimeout(function() {
+                            layer.batchDraw();
+                            layer.moveToBottom()
+                        },200)
+                    })
+                })
+            },
         },
         created() {
             console.log(Konva, 'Konva')
         },
         mounted() {
             const that = this;
-            that.renderLegendsByRequest()
             that.stage = new Konva.Stage({
                 container: "konvaContainer",
-                width: 1800,
-                height: 956,
+                width: that.stageInfo.width,
+                height: that.stageInfo.height,
             });
             that.legendLayer = new Konva.Layer();
-            that.colorList = ["red", "orange", "yellow", "green", "blue", "purple"];
-            for (var n = 0; n < that.colorList.length; n++) {
-                // anonymous function to induce scope
-                (function() {
-                    var i = n;
-                    var box = new Konva.Rect({
-                        x: i * 30 + 150,
-                        y: i * 18 + 40,
-                        fill: that.colorList[i],
-                        stroke: "black", 
-                        name: `${i}${i}${i}${i}${i}`,
-                        strokeWidth: 4,
-                        draggable: true,
-                        width: 100,
-                        height: 50
-                    });
-
-                    box.on("dragstart", function(e) {
-                        console.log('dragstart', e)
-
-                        // box.moveToTop();
-                        that.legendLayer.batchDraw();
-                    });
-
-                    box.on("dragmove", function() {
-                        document.body.style.cursor = "pointer";
-                    });
-                    /*
-                    * dblclick to remove box for desktop app
-                    * and dbltap to remove box for mobile app
-                    */
-                    box.on("dblclick dbltap", function(e) {
-                        console.log('dblclick dbltap', e)
-                        that.legendLayer.remove(box);
-                        that.legendLayer.batchDraw();
-                    });
-
-                    box.on("mouseover", function(e) {
-
-                        document.body.style.cursor = "pointer";
-                    });
-                    box.on("mouseout", function() {
-                        document.body.style.cursor = "default";
-                    });
-
-                    that.legendLayer.add(box);
-                })();
-            }
-
             that.stage.add(that.legendLayer);
-            // that.createImageToLayer()
+            that.getQueryVariable()
+            // that.renderBaseImageByRequest()
+            that.renderImageForRequest()
+            
         }
     };
 </script>

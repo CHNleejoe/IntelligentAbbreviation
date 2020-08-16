@@ -19,9 +19,10 @@
                     <div class="type-item" v-for="item in legendList">
                         <img :src="item.url" alt="">
                         <div class="img-label">{{item.name}}</div>
-                        <div class="type-add" @click="createImageToLayer(item)"></div>
+                        <div class="type-add" @click="createLegendImage(item)"></div>
+                        <!-- <div class="type-add" @click="createImageToLayer(item)"></div> -->
                     </div>
-                    <div class="type-item">
+                    <!-- <div class="type-item">
                         <img src="../../../static/imgs/cat.png" alt="">
                         <div class="img-label">文本标签</div>
                         <div class="type-add" @click="createLabelToLayer"></div>
@@ -30,7 +31,7 @@
                         <img src="../../../static/imgs/cat.png" alt="">
                         <div class="img-label">特殊文本</div>
                         <div class="type-add" @click="createSpecicalLabelToLayer"></div>
-                    </div>
+                    </div> -->
                 </div>
             </div>
             <div class='canvas' οnmοusedοwn="return false;">
@@ -38,7 +39,7 @@
                     <Button class="Button-btn" type="primary" size='large' @click="scaleImageFromLayer(1)">设备图标放大</Button>
                     <Button class="Button-btn" type="primary" size='large' @click="scaleImageFromLayer(0)">设备图标缩小</Button>
                     <Button class="Button-btn" type="success" size='large' @click="spinImageFromLayer">旋转</Button>
-                    <Button class="Button-btn" type="success" size='large' @click="changeImageFromBox">改变</Button>
+                    <!-- <Button class="Button-btn" type="success" size='large' @click="changeImageFromBox">改变</Button> -->
 
                     <!-- <button @click="removeImageFromLayer">移除</button>
                     <button @click="changeImageFromBox">改变图片</button>
@@ -134,7 +135,7 @@
                     </div>
                 </div>
                 <div class="set-url" v-show="labelType == 1">
-                    <Input search enter-button="确定" placeholder="请输入请求地址" v-model="keyword" @on-search='requestPointTables(0)'/>
+                    <Input search enter-button="确定" placeholder="请输入请求地址" v-model="apiKeyword" @on-search='editSpecicalLabel'/>
                 </div>
             </div>
         </div>
@@ -148,7 +149,7 @@
         data() {
             return {
                 // 公厕id
-                toiletId: 6,
+                toiletId: 13,
                 // 平面图id
                 id: 1,
 
@@ -191,9 +192,21 @@
                 
                 //  0 是图例   1 是纯文本   2 是特殊文本
                 legendType: 2,
+
+                apiKeyword: ''
             };
         },
         methods: {
+            createLegendImage(item) {
+                const that = this;
+                if(item.styleType == 1) { // 布尔 -- 图片
+                    that.createImageToLayer(item)
+                } else if(item.styleType == 2) { // 文本 -- 纯文本
+                    that.createLabelToLayer(item)
+                } else if(item.styleType == 3) { // 数值 -- 特殊文本
+                    that.createSpecicalLabelToLayer(item)
+                }
+            },
             createImageToLayer(item) {
                 const that = this;
                 var layer = that.legendLayer
@@ -222,6 +235,7 @@
                         if(layer.children[i].attrs.legendInfo.id == id ) {
                             that.onClickedIndex = i
                             that.legendType = 0
+                            that.selectedInfo = layer.children[i].attrs.legendInfo.equipmentInfo? layer.children[i].attrs.legendInfo.equipmentInfo: {} 
                             that.keyword = ''
                             return
                         }
@@ -239,6 +253,7 @@
                         if(layer.children[i].attrs.legendInfo.id == id ) {
                             that.onClickedIndex = i
                             that.legendType = 0
+                            that.selectedInfo = layer.children[i].attrs.legendInfo.equipmentInfo? layer.children[i].attrs.legendInfo.equipmentInfo: {} 
                             that.keyword = ''
                             return
                         }
@@ -259,6 +274,7 @@
                 }
                 that.onClickedIndex = layer.children.length?layer.children.length:0
                 that.legendType = 0
+                that.keyword = ''
 
                 layer.add(imgBox);
                 setTimeout(function() {
@@ -268,21 +284,21 @@
 
                 that.legendImageList.push(imgBox)
             },
-            createLabelToLayer() {
+            createLabelToLayer(item) {
                 const that = this;
                 var layer = that.legendLayer
                 var textBox = new Konva.Text({
                     x: that.stageInfo.width/2,
                     y: that.stageInfo.height/2,
-                    text: 'Simple Text',
+                    text: '请输入文本',
                     fontSize: 30,
-                    name: '特殊文本',
+                    name: '普通文本',
                     fontFamily: 'Calibri',
                     draggable: true,
                     fill: 'white',
                     legendType: 1,
                     legendInfo: {
-                        
+                        ...item
                     }
                 });
 
@@ -293,7 +309,7 @@
                         if(layer.children[i].attrs.legendInfo.id == id ) {
                             that.onClickedIndex = i
                             that.legendType = 1
-                            that.keyword = ''
+                            that.keyword = layer.children[i].attrs.text
                             return
                         }
                     }
@@ -310,7 +326,7 @@
                         if(layer.children[i].attrs.legendInfo.id == id ) {
                             that.onClickedIndex = i
                             that.legendType = 1
-                            that.keyword = ''
+                            that.keyword = layer.children[i].attrs.text
                             return
                         }
                     }
@@ -331,13 +347,14 @@
 
                 that.onClickedIndex = layer.children.length?layer.children.length:0
                 that.legendType = 1
+                that.keyword = ''
 
                 layer.add(textBox);
                 setTimeout(function() {
                     layer.batchDraw();
                 },200)
             },
-            createSpecicalLabelToLayer() {
+            createSpecicalLabelToLayer(item) {
                 const that = this;
                 var layer = that.legendLayer
                 var textBox = new Konva.Text({
@@ -345,13 +362,13 @@
                     y: that.stageInfo.height/2,
                     text: '0',
                     fontSize: 30,
-                    name: '文本标签',
+                    name: '特殊文本',
                     fontFamily: 'Calibri',
                     draggable: true,
                     fill: 'white',
                     legendType: 2,
                     legendInfo: {
-                        
+                        ...item
                     }
                 });
 
@@ -400,6 +417,7 @@
 
                 that.onClickedIndex = layer.children.length?layer.children.length:0
                 that.legendType = 2
+                that.keyword = ''
 
                 layer.add(textBox);
                 setTimeout(function() {
@@ -522,6 +540,7 @@
                 let params = {
                     toiletId: that.toiletId
                 }
+                let apiList = []
                 that.$api.pointTables(params).then(res => {
 
                     that.$util.parseRequest(res,function() {
@@ -532,7 +551,8 @@
                         that.legendPointTableDataList = res.b
 
                         that.legendLayer.children.map(item => {
-                            item.attrs.legendInfo.equipmentData
+                            item.attrs.legendInfo.equipmentData 
+
                         })
                         that.legendLayer.draw()
                     })
@@ -563,7 +583,7 @@
                     return
                 }
                 let params = {
-                    toiletId: 13,
+                    toiletId: that.toiletId,
                     type: that.equipmentType
                 }
                 that.$api.deviceByType(params).then(res => {
@@ -591,7 +611,7 @@
                     that.$util.parseRequest(res,function() {
                         console.log(res,'pointTables')
 
-                        flag == 0?that.selectedInfo = res.b[0]:''
+                        flag == 0?that.selectedInfo = (res.b[0]? res.b[0]:{}):''
                         flag == 1?that.pointTableList = res.b:''
                     })
                 })
@@ -632,6 +652,17 @@
                     that.legendLayer.batchDraw();
                 },200)
             },
+            editSpecicalLabel() {
+                const that = this;
+                if(that.onClickedIndex == null) {
+                    this.$Message.warning('未选中图例');
+                    return
+                }
+                that.legendLayer.children[that.onClickedIndex].attrs.legendInfo.api = that.keyword
+                setTimeout(function() {
+                    that.legendLayer.batchDraw();
+                },200)
+            },
             
             submitAllLegendImageInfo() {
                 const that = this;
@@ -642,7 +673,7 @@
 
                 let params = {
                     id: that.id,
-                    json: JSON.stringify(dataList)
+                    graphJson: JSON.stringify(dataList)
                 }
                 that.$api.saveGraph(params).then(res => {
 
@@ -651,6 +682,17 @@
                         that.$Message.success('保存成功');
                     })
                 })
+            },
+            getQueryVariable(variable){
+                const that = this
+                var query = window.location.href;
+                var vars = query.split("?");
+                vars = vars[1].split('&')
+                for (var i=0;i<vars.length;i++) {
+                        var pair = vars[i].split("=");
+                        that[pair[0]] = pair[1]
+                        console.log(pair, 'getQueryVariable')
+                }
             }
 
         },
@@ -671,8 +713,10 @@
             that.stage.add(that.legendLayer);
             // that.createImageToLayer()
             console.log(that.legendImageIndex,that.legendLayer.children)
+            that.getQueryVariable()
             that.renderBaseImageByRequest()
             that.requestEquipments()
+            that.renderEvaryHasDataChangedImageFromLayer()
         }
     };
 </script>
